@@ -1,9 +1,10 @@
 "use client";
 import React from "react";
 import { loginWithGoogle, signOut } from "@/server/firebase";
-import { useAuth } from "@/app/context"; 
+import { useAuth } from "@/app/context";
+import Link from "next/link"; 
 
-const Login: React.FC = () => {
+export default function Login() {
   const { user, login } = useAuth();
   const handleGoogleLogin = async () => {
     try {
@@ -27,15 +28,45 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex gap-2">
-      {user == null ? (
-        <button onClick={handleGoogleLogin}>Login with Google</button>
-      ) : (
-        <button onClick={handleSignOut}>Sign out</button>
-      )}    
-      {user && <p>Welcome, {user.displayName}</p>}
-    </div>
-  );
-};
+    <nav className="flex w-full justify-between gap-4 p-4">
+      <div className="flex gap-4 items-center justify-center">
+        <Link
+          href="/"
+          className="text-gray-700 hover:text-gray-900 font-medium hover:font-bold transition-all"
+        >
+          Home
+        </Link>
+        <Link
+          href="/upload"
+          className="text-gray-700 hover:text-gray-900 font-medium hover:font-bold transition-all"
+        >
+          Create Recipe
+        </Link>
+      </div>
 
-export default Login;
+      <div className="flex items-center gap-4">
+        {user == null ? (
+          <button
+            onClick={handleGoogleLogin}
+            className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+          >
+            Login with Google
+          </button>
+        ) : (
+          <>
+            <p className="text-lg font-medium text-gray-700">
+              Welcome, {user.displayName}
+            </p>
+            <button
+              onClick={handleSignOut}
+              className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+            >
+              Sign out
+            </button>
+          </>
+        )}
+      </div>
+    </nav>
+  );
+}
+

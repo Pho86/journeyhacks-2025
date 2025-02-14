@@ -22,7 +22,7 @@ export default function UploadPage() {
   return (
     <div className="max-w-screen-lg w-full mx-auto">
       <Login />
-      <div className="mt-8">
+      <div className="p-4">
         <FoodAnalyzer />
       </div>
     </div>

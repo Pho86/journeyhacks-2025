@@ -40,7 +40,7 @@ export default function Login() {
           href="/upload"
           className="text-gray-700 hover:text-gray-900 font-medium hover:font-bold transition-all"
         >
-          Create Recipe
+          Create
         </Link>
       </div>
 
@@ -55,7 +55,7 @@ export default function Login() {
         ) : (
           <>
             <p className="text-lg font-medium text-gray-700">
-              Welcome, {user.displayName}
+              {user.displayName}
             </p>
             <button
               onClick={handleSignOut}

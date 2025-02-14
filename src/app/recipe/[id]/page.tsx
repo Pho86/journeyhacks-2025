@@ -8,6 +8,18 @@ import { Recipe, Food } from '@/utils/types';
 import { db } from '../../../../firebase.config';
 import { useAuth } from '@/app/context';
 
+interface Analysis {
+  group: string;
+  percentage: number;
+  matches: string[];
+}
+
+interface AnalysisResult {
+  analysis: Analysis[];
+  triggers: Analysis[];
+  suggestion: string;
+}
+
 export default function RecipePage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -16,6 +28,8 @@ export default function RecipePage() {
   const [foods, setFoods] = useState<Food[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -27,7 +41,6 @@ export default function RecipePage() {
       try {
         const recipeId = params.id as string;
         
-        // Fetch recipe details
         if (!db) {
           setError('Database not initialized');
           return;
@@ -42,7 +55,6 @@ export default function RecipePage() {
 
         setRecipe({ id: recipeSnap.id, ...recipeSnap.data() } as Recipe);
 
-        // Fetch associated foods
         const foodCollection = collection(db, 'food');
         const foodQuery = query(foodCollection, where('recipeId', '==', recipeId));
         const foodSnap = await getDocs(foodQuery);
@@ -63,9 +75,29 @@ export default function RecipePage() {
     fetchRecipe();
   }, [params.id, user, router]);
 
-  if (!user) {
-    return <div className="min-h-screen flex items-center justify-center">Please login to view recipes</div>;
-  }
+  const analyzeFoods = async () => {
+    setAnalyzing(true);
+    try {
+      const response = await fetch('/api/foodanalyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          foods: foods.map(f => f.name)
+        }),
+      });
+
+      if (!response.ok) throw new Error('Analysis failed');
+      const result = await response.json();
+      setAnalysis(result);
+    } catch (error) {
+      console.error('Error analyzing foods:', error);
+      setError('Failed to analyze foods');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -90,7 +122,8 @@ export default function RecipePage() {
             width={800}
             height={400}
             alt={recipe.title}
-            className="w-full h-[400px] object-cover"
+            className="w-full h-[500px] object-cover object-center rotate-180"
+            
           />
 
           <div className="p-6">
@@ -118,6 +151,39 @@ export default function RecipePage() {
                   ))}
                 </ul>
               </div>
+            </div>
+
+            <div className="mt-8">
+              <button
+                onClick={analyzeFoods}
+                disabled={analyzing}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+              >
+                {analyzing ? 'Analyzing...' : 'Analyze for Sensitivities'}
+              </button>
+
+              {analysis && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <h3 className="text-lg font-semibold mb-2">Analysis Results</h3>
+                  <div className="space-y-2">
+                    {analysis.analysis.map(({ group, percentage }) => (
+                      <div key={group} className="flex items-center gap-2">
+                        <span className="capitalize">{group}:</span>
+                        <div className="flex-1 bg-gray-200 rounded-full h-4">
+                          <div
+                            className={`h-full rounded-full ${
+                              percentage > 20 ? 'bg-yellow-500' : 'bg-green-500'
+                            }`}
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <span>{percentage.toFixed(1)}%</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-4 text-gray-700">{analysis.suggestion}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

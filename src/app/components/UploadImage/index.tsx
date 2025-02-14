@@ -248,96 +248,66 @@ export default function FoodAnalyzer() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2">
-      <div className="flex">
-        <div className="w-max">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="mb-4"
-          />
-          {image && (
-            <Image
-              src={image}
-              width={300}
-              height={300}
-              alt="Food Preview"
-              className="max-w-sm rounded-xl shadow-lg transition-opacity"
-            />
-          )}
-        </div>
+    <form onSubmit={handleSubmit}>
+  <div>
+    <div>
+      <input type="file" accept="image/*" onChange={handleImageUpload} />
+      {image && (
+        <Image src={image} width={300} height={300} alt="Food Preview" />
+      )}
+    </div>
+  </div>
+
+  {loading || clarifaiLoading && <div>Loading...</div>}
+
+  {error && <div>Error: {error}</div>}
+
+  {predictions.length > 0 && (
+    <>
+      <div>
+        <h2>Food Title:</h2>
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Food..."
+          required
+        />
       </div>
-      {loading || clarifaiLoading && (
-        <div className="flex justify-center items-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-        </div>
-      )}
-      {error && (
-        <div className="text-red-500 bg-red-50 p-3 rounded-lg">
-          Error: {error}
-        </div>
-      )}
-      {predictions.length > 0 && (
-        <>
-          <div className="flex flex-col">
-            <h2 className="text-lg font-semibold">Food Title:</h2>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Food..."
-              className="px-3 py-2 border w-max rounded-lg "
-              required
-            />
-          </div>
 
-          <div className="">
-            <h3 className="text-lg font-semibold mb-2">Food Items:</h3>
-            <div className="mb-4 flex gap-2">
-              <input
-                type="text"
-                value={newFood}
-                onChange={(e) => setNewFood(e.target.value)}
-                placeholder="Add food item..."
-                className="px-3 py-1 border rounded-lg"
-              />
-              <button
-                type="button"
-                onClick={handleAddFood}
-                className="px-4 py-1 bg-zinc-800 text-white rounded-lg hover:bg-zinc-600 transition-colors"
-              >
-                Add
-              </button>
-            </div>
-            <ul className="list-disc flex flex-col gap-2">
-              {predictions.map((pred, index) => (
-                <li key={index} className="flex items-center gap-2 group">
-                  <span title={`Confidence: ${(pred.value * 100).toFixed(2)}%`}>
-                    {pred.name} ({(pred.value * 100).toFixed(2)}%)
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => deletePrediction(index)}
-                    className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Delete"
-                  >
-                    ×
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <button
-            type="submit"
-            className="px-8 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-600 transition-colors"
-            disabled={!title || predictions.length === 0}
-          >
-            Save Recipe
+      <div>
+        <h3>Food Items:</h3>
+        <div>
+          <input
+            type="text"
+            value={newFood}
+            onChange={(e) => setNewFood(e.target.value)}
+            placeholder="Add food item..."
+          />
+          <button type="button" onClick={handleAddFood}>
+            Add
           </button>
-        </>
-      )}
-    </form>
+        </div>
+        <ul>
+          {predictions.map((pred, index) => (
+            <li key={index}>
+              <span title={`Confidence: ${(pred.value * 100).toFixed(2)}%`}>
+                {pred.name} ({(pred.value * 100).toFixed(2)}%)
+              </span>
+              <button type="button" onClick={() => deletePrediction(index)}>
+                ×
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <button type="submit" disabled={!title || predictions.length === 0}>
+        Save Recipe
+      </button>
+    </>
+  )}
+</form>
+
   );
 }

@@ -3,25 +3,32 @@ import Login from "./components/Login";
 import { useEffect, useState } from "react";
 import { collection, getDocs, getFirestore } from "firebase/firestore";
 import { app } from "../../firebase.config";
-import Image from "next/image";
 import UploadButton from "./components/UploadButton";
 import Link from "next/link";
-
-interface Food {
-  id: string;
-  title: string;
-  imageUrl: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
+import { FoodImage } from "@/utils/types";
+import { getAuth } from "firebase/auth";
+import FoodCard from "./components/FoodCard";
 const getDb = () => {
   if (!app) throw new Error("Firebase app not initialized");
   return getFirestore(app);
 };
 
 export default function Home() {
-  const [foods, setFoods] = useState<Food[]>([]);
+  const [foods, setFoods] = useState<FoodImage[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const auth = getAuth(app);
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUserId(user.uid);
+      } else {
+        setUserId(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const fetchFoods = async () => {
@@ -32,35 +39,55 @@ export default function Home() {
         const foodList = foodSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
-        })) as Food[];
-        console.log(foodList);
-        setFoods(foodList);
+        })) as FoodImage[];
+        const sortedFoods = foodList
+          .filter((food) => food.userId === userId)
+          .sort((a, b) => {
+            if (!a.updatedAt) return 1;
+            if (!b.updatedAt) return -1;
+            return (
+              new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+            );
+          });
+
+        setFoods(sortedFoods);
       } catch (error) {
         console.error('Error fetching foods:', error);
       }
     };
 
-    fetchFoods();
-  }, []);
+    if (userId) {
+      fetchFoods();
+    }
+  }, [userId]);
 
   return (
     <div className="relative max-w-screen-lg w-full">
       <Login />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 p-4">
-        {foods.map((food) => (
-          <Link href={`/recipe/${food.id}`} key={food.id} className=" group">
-            {food.imageUrl && (
-              <Image
-                src={food.imageUrl}
-                width={300}
-                height={300}
-                alt={food.title}
-                className="w-full h-72 object-cover rounded-lg"
-              />
-            )}
-            <h3 className="mt-2 text-xl font-semibold group-hover:font-bold transition-all">{food.title}</h3>
-          </Link>
-        ))}
+        {foods.length === 0 ? (
+          <div className="col-span-full text-center py-8">
+            <p className="text-xl text-gray-600 mb-4">You haven&apos;t created any recipes yet!</p>
+            <div className="flex gap-4 justify-center">
+              <Link 
+                href="/upload"
+                className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+              >
+                Create Recipe
+              </Link>
+              <Link
+                href="/browse" 
+                className="bg-zinc-100 hover:bg-zinc-200 text-zinc-800 font-semibold py-2 px-4 rounded-lg transition-colors"
+              >
+                Browse Recipes
+              </Link>
+            </div>
+          </div>
+        ) : (
+          foods.map((food) => (
+            <FoodCard key={food.id} food={food} />
+          ))
+        )}
       </div>
       <UploadButton />
     </div>

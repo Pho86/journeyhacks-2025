@@ -37,10 +37,16 @@ export default function Login() {
           Home
         </Link>
         <Link
+          href="/browse"
+          className="text-gray-700 hover:text-gray-900 font-medium hover:font-bold transition-all"
+        >
+          Browse
+        </Link>
+        <Link
           href="/upload"
           className="text-gray-700 hover:text-gray-900 font-medium hover:font-bold transition-all"
         >
-          Create
+          Record Meal
         </Link>
       </div>
 

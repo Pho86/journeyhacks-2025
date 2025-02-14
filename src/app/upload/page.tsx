@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import FoodAnalyzer from '../components/Image';
+import FoodAnalyzer from '../components/UploadImage';
 import Login from '../components/Login';
 import { useAuth } from '../context';
 

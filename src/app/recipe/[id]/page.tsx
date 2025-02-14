@@ -116,7 +116,7 @@ export default function RecipePage() {
       <div className="max-w-4xl mx-auto ">
         <Login />
 
-        <div className="mt-8 bg-white shadow rounded-lg overflow-hidden">
+        <div className="p-4 bg-white shadow rounded-lg overflow-hidden">
           <Image
             src={recipe.imageUrl}
             width={800}
@@ -177,7 +177,7 @@ export default function RecipePage() {
                             style={{ width: `${percentage}%` }}
                           />
                         </div>
-                        <span>{percentage.toFixed(1)}%</span>
+                        <span>{percentage === 100 ? '' : `${percentage.toFixed(1)}%`}</span>
                       </div>
                     ))}
                   </div>

@@ -5,7 +5,7 @@ import { useUploadThing } from "@/utils/uploadthing";
 import { getFirestore, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { app } from "../../../../firebase.config";
 import { useRouter } from "next/navigation";
-
+import { useAuth } from "@/app/context";
 interface Prediction {
   name: string;
   value: number;
@@ -23,6 +23,7 @@ const getDb = () => {
 
 export default function FoodAnalyzer() {
   const router = useRouter();
+  const { user } = useAuth(); // Get current user
   const [image, setImage] = useState<string | null>(null);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(false);
@@ -62,10 +63,10 @@ export default function FoodAnalyzer() {
           setImage(base64);
 
           const uploadResponse = await startUpload([file]);
-          if (!uploadResponse?.[0]?.url) {
+          if (!uploadResponse?.[0]?.ufsUrl) {
             throw new Error("Failed to upload image");
           }
-          const imageUrl = uploadResponse[0].url;
+          const imageUrl = uploadResponse[0].ufsUrl;
 
           // Add a check for app initialization
           if (!app) throw new Error("Firebase app not initialized");
@@ -77,6 +78,7 @@ export default function FoodAnalyzer() {
             title: "",
             imageUrl,
             createdAt: new Date().toISOString(),
+            userId: user?.uid,
           };
           
           const recipeRef = await addDoc(recipesCollection, recipeData);
@@ -192,6 +194,7 @@ export default function FoodAnalyzer() {
         confidence: 1,
         recipeId,
         createdAt: new Date().toISOString(),
+        userId: user?.uid,
       });
 
       // Refresh predictions

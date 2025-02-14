@@ -2,6 +2,8 @@ import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "../../firebase.config";
 
 const loginWithGoogle = async () => {
+    if (!auth) throw new Error("Firebase auth not initialized");
+    
     const provider = new GoogleAuthProvider();
     try {
         const userCredential = await signInWithPopup(auth, provider);
@@ -13,6 +15,8 @@ const loginWithGoogle = async () => {
 };
 
 const signOut = async () => {
+    if (!auth) throw new Error("Firebase auth not initialized");
+    
     try {
         await auth.signOut();
         console.log("User signed out successfully");

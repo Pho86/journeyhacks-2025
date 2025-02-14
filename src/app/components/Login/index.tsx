@@ -33,7 +33,7 @@ const Login: React.FC = () => {
       ) : (
         <button onClick={handleSignOut}>Sign out</button>
       )}    
-      {user && <p>Welcome, {user}</p>}
+      {user && <p>Welcome, {user.displayName}</p>}
     </div>
   );
 };

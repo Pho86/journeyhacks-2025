@@ -1,5 +1,5 @@
-import { initializeApp } from "firebase/app";
-import { initializeAuth, browserLocalPersistence, browserPopupRedirectResolver, indexedDBLocalPersistence } from "firebase/auth";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+import { getAuth, browserLocalPersistence, Auth } from "firebase/auth";
 
 export const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -10,11 +10,15 @@ export const firebaseConfig = {
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = initializeAuth(app, {
-    persistence: [indexedDBLocalPersistence, browserLocalPersistence],
-    popupRedirectResolver: browserPopupRedirectResolver,
-});
-export { auth, app }
+// Initialize Firebase only on the client side
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
+
+if (typeof window !== "undefined") {
+    app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    auth.setPersistence(browserLocalPersistence);
+}
+
+export { auth, app };
 

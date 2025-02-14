@@ -2,7 +2,7 @@
 import React from "react";
 import { loginWithGoogle, signOut } from "@/server/firebase";
 import { useAuth } from "@/app/context";
-import Link from "next/link"; 
+import Link from "next/link";
 
 export default function Login() {
   const { user, login } = useAuth();
@@ -46,7 +46,8 @@ export default function Login() {
           href="/upload"
           className="text-gray-700 hover:text-gray-900 font-medium hover:font-bold transition-all"
         >
-          Record Meal
+          Record
+          <span className="hidden md:inline"> Meal</span>
         </Link>
       </div>
 
@@ -56,7 +57,7 @@ export default function Login() {
             onClick={handleGoogleLogin}
             className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
           >
-            Login with Google
+            Login
           </button>
         ) : (
           <>
@@ -67,7 +68,7 @@ export default function Login() {
               onClick={handleSignOut}
               className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
             >
-              Sign out
+              Logout
             </button>
           </>
         )}
@@ -75,4 +76,3 @@ export default function Login() {
     </nav>
   );
 }
-

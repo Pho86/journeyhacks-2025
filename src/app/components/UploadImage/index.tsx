@@ -250,12 +250,38 @@ export default function FoodAnalyzer() {
   return (
     <form onSubmit={handleSubmit}>
   <div>
-    <div>
-      <input type="file" accept="image/*" onChange={handleImageUpload} />
-      {image && (
-        <Image src={image} width={300} height={300} alt="Food Preview" />
-      )}
-    </div>
+        <div>
+        {/* Hidden File Input */}
+        <input
+          id="fileInput"
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          style={{ display: "none" }} // Hide the default input
+        />
+
+        {/* Custom Upload Button */}
+        <label
+          htmlFor="fileInput"
+          style={{
+            display: "inline-block",
+            padding: "10px 20px",
+            backgroundColor: "#333",
+            color: "white",
+            cursor: "pointer",
+            borderRadius: "5px",
+            textAlign: "center",
+          }}
+        >
+          Image Upload
+        </label>
+
+        {/* Image Preview */}
+        {image && (
+          <Image src={image} width={300} height={300} alt="Food Preview" />
+        )}
+      </div>
+
   </div>
 
   {loading || clarifaiLoading && <div>Loading...</div>}

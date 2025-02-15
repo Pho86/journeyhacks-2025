@@ -1,19 +1,20 @@
 "use client";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState } from "react";
 import { collection, getDocs, getFirestore, query, where } from "firebase/firestore";
 import { app } from "../../../../firebase.config";
 import Login from "@/app/components/NavBar";
 import { FoodImage } from "@/utils/types";
 import FoodCard from "@/app/components/FoodCard";
+import { useParams } from "next/navigation";
 
 const getDb = () => {
   if (!app) throw new Error("Firebase app not initialized");
   return getFirestore(app);
 };
 
-export default function ProfilePage({ params }: { params: { userid: string  } }) {
-    // @ts-expect-error user id is not wrapped in a promise
-    const { userid } = use(params);
+export default function ProfilePage() {
+  const params = useParams();
+  const userid = params.userid as string;
   const [foods, setFoods] = useState<FoodImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

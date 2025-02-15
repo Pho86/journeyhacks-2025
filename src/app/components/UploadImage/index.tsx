@@ -29,7 +29,6 @@ export default function FoodAnalyzer() {
   const [loading, setLoading] = useState(false);
   const [newFood, setNewFood] = useState("");
   const [title, setTitle] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [clarifaiLoading, setClarifaiLoading] = useState(false);
   const [localPredictions, setLocalPredictions] = useState<Prediction[]>([]);
@@ -42,21 +41,17 @@ export default function FoodAnalyzer() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file');
       return;
     }
 
     // Validate file size (4MB limit)
     if (file.size > 4 * 1024 * 1024) {
-      setError('Image size must be less than 4MB');
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
-      // Convert file to base64 for preview and Clarifai
       const reader = new FileReader();
       reader.onload = async () => {
         try {
@@ -109,18 +104,16 @@ export default function FoodAnalyzer() {
           setPredictions(filteredConcepts);
 
         } catch (err) {
-          setError(err instanceof Error ? err.message : "Failed to process image");
           console.error("Error processing image:", err);
         } finally {
           setClarifaiLoading(false);
         }
       };
       reader.onerror = () => {
-        setError("Failed to read image file. Please try again.");
+        console.error("Failed to read image file. Please try again.");
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      setError(error instanceof Error ? error.message : "An unexpected error occurred");
       console.error("Error processing image:", error);
     } finally {
       setLoading(false);
@@ -191,11 +184,10 @@ export default function FoodAnalyzer() {
       
     } catch (error) {
       if (error instanceof Error && error.message.includes("permission-denied")) {
-        setError("Permission denied. Please check Firestore rules.");
+        console.error("Permission denied. Please check Firestore rules.");
       } else {
-        setError(error instanceof Error ? error.message : "Failed to save recipe");
+        console.error("Error saving recipe:", error);
       }
-      console.error("Error saving recipe:", error);
     } finally {
       setLoading(false);
     }
@@ -203,10 +195,10 @@ export default function FoodAnalyzer() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
-  <form
-    onSubmit={handleSubmit}
-    className="space-y-4 p-6 bg-white shadow-lg rounded-lg w-full max-w-md flex flex-col items-start" // Left-align content
-  >
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 p-6 bg-white shadow-lg mb-32 rounded-lg w-full max-w-md flex flex-col items-start" // Left-align content
+      >
     {/* File Upload Button */}
     <div className="flex flex-col items-start w-full">
       <input id="fileInput" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
@@ -235,39 +227,55 @@ export default function FoodAnalyzer() {
       )}
     </div>
 
-    {/* Form Inputs (Left-Aligned) */}
     {image && (
       <>
         <div className="flex flex-col items-start w-full">
-          <h2 className="text-lg font-semibold">Food Title:</h2>
+          <h2 className="text-lg font-semibold">Name of Dish:</h2>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Food..."
+            placeholder="Dish name..."
             className="px-3 py-2 border w-full rounded-lg"
             required
           />
         </div>
 
         <div className="flex flex-col items-start w-full">
-          <h3 className="text-lg font-semibold mb-2">Food Items:</h3>
+          <h3 className="text-lg font-semibold mb-2">Ingredients:</h3>
           <div className="mb-4 flex w-full">
             <input
               type="text"
               value={newFood}
               onChange={(e) => setNewFood(e.target.value)}
-              placeholder="Add food item..."
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddFood(e);
+                }
+              }}
+              placeholder="Add ingredient..."
               className="px-3 py-1 border rounded-lg flex-1"
             />
             <button
               type="button"
+              onClick={handleAddFood}
               className="ml-2 px-4 py-1 bg-zinc-800 text-white rounded-lg hover:bg-zinc-600 transition-colors"
             >
               Add
             </button>
           </div>
         </div>
+
+        {(loading || clarifaiLoading) && (
+            <div className="p-6 rounded-lg flex items-center gap-2">
+              <svg className="animate-spin h-5 w-5 text-zinc-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Loading...</span>
+            </div>
+        )}
 
         {/* Prediction List (Left-Aligned) */}
         <ul className="list-disc flex flex-col gap-2 self-start">
@@ -278,8 +286,9 @@ export default function FoodAnalyzer() {
               </span>
               <button
                 type="button"
-                className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="text-red-500 hover:font-bold transition-all"
                 title="Delete"
+                onClick={() => deletePrediction(index)}
               >
                 ×
               </button>

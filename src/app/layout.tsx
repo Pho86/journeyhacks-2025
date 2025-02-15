@@ -14,7 +14,7 @@ const rubik_mono = Rubik_Mono_One({
 });
 
 export const metadata: Metadata = {
-  title: "Food Sensitivity",
+  title: "Food Sensi",
   description: "A tool to help you understand your food sensitivities by analyzing images of your food",
 };
 

@@ -202,96 +202,106 @@ export default function FoodAnalyzer() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2">
-      <div className="flex">
-        <div className="w-max">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="mb-4"
-          />
-          {image && (
-            <Image
-              src={image}
-              width={300}
-              height={300}
-              alt="Food Preview"
-              className="max-w-sm rounded-xl shadow-lg transition-opacity"
-            />
-          )}
-        </div>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+  <form
+    onSubmit={handleSubmit}
+    className="space-y-4 p-6 bg-white shadow-lg rounded-lg w-full max-w-md flex flex-col items-start" // Left-align content
+  >
+    {/* File Upload Button */}
+    <div className="flex flex-col items-start w-full">
+      <input id="fileInput" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+      
+      <div className="flex justify-center w-full">
+      
+        <label
+          htmlFor="fileInput"
+          className="px-6 py-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600 transition-colors"
+        >
+          Upload Image
+        </label>
       </div>
-      {loading || clarifaiLoading && (
-        <div className="flex justify-center items-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+
+      {/* Image Preview (Left-Aligned) */}
+      {image && (
+        <div className="mt-4 self-start">
+          <Image
+            src={image}
+            width={300}
+            height={300}
+            alt="Food Preview"
+            className="w-full rounded-lg shadow-lg"
+          />
         </div>
       )}
-      {error && (
-        <div className="text-red-500 bg-red-50 p-3 rounded-lg">
-          Error: {error}
+    </div>
+
+    {/* Form Inputs (Left-Aligned) */}
+    {image && (
+      <>
+        <div className="flex flex-col items-start w-full">
+          <h2 className="text-lg font-semibold">Food Title:</h2>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Food..."
+            className="px-3 py-2 border w-full rounded-lg"
+            required
+          />
         </div>
-      )}
-      {predictions.length > 0 && (
-        <>
-          <div className="flex flex-col">
-            <h2 className="text-lg font-semibold">Food Title:</h2>
+
+        <div className="flex flex-col items-start w-full">
+          <h3 className="text-lg font-semibold mb-2">Food Items:</h3>
+          <div className="mb-4 flex w-full">
             <input
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Food..."
-              className="px-3 py-2 border w-max rounded-lg "
-              required
+              value={newFood}
+              onChange={(e) => setNewFood(e.target.value)}
+              placeholder="Add food item..."
+              className="px-3 py-1 border rounded-lg flex-1"
             />
+            <button
+              type="button"
+              className="ml-2 px-4 py-1 bg-zinc-800 text-white rounded-lg hover:bg-zinc-600 transition-colors"
+            >
+              Add
+            </button>
           </div>
+        </div>
 
-          <div className="">
-            <h3 className="text-lg font-semibold mb-2">Food Items:</h3>
-            <div className="mb-4 flex gap-2">
-              <input
-                type="text"
-                value={newFood}
-                onChange={(e) => setNewFood(e.target.value)}
-                placeholder="Add food item..."
-                className="px-3 py-1 border rounded-lg"
-              />
+        {/* Prediction List (Left-Aligned) */}
+        <ul className="list-disc flex flex-col gap-2 self-start">
+          {predictions.map((pred, index) => (
+            <li key={index} className="flex items-center gap-2 group">
+              <span title={`Confidence: ${(pred.value * 100).toFixed(2)}%`}>
+                {pred.name} ({(pred.value * 100).toFixed(2)}%)
+              </span>
               <button
                 type="button"
-                onClick={handleAddFood}
-                className="px-4 py-1 bg-zinc-800 text-white rounded-lg hover:bg-zinc-600 transition-colors"
+                className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Delete"
               >
-                Add
+                ×
               </button>
-            </div>
-            <ul className="list-disc flex flex-col gap-2">
-              {predictions.map((pred, index) => (
-                <li key={index} className="flex items-center gap-2 group">
-                  <span title={`Confidence: ${(pred.value * 100).toFixed(2)}%`}>
-                    {pred.name} ({(pred.value * 100).toFixed(2)}%)
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => deletePrediction(index)}
-                    className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Delete"
-                  >
-                    ×
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+            </li>
+          ))}
+        </ul>
 
-          <button
-            type="submit"
-            className="px-8 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-600 transition-colors"
-            disabled={!title || predictions.length === 0}
-          >
-            Save Recipe
-          </button>
-        </>
-      )}
-    </form>
+        <div className="flex justify-center w-full">
+
+        {/* Save Recipe Button (Left-Aligned) */}
+        <button
+          type="submit"
+          className="px-8 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-600 transition-colors self-start"
+          disabled={!title}
+        >
+          Save Recipe
+        </button>
+        </div>
+      </>
+    )}
+  </form>
+</div>
+
   );
 }

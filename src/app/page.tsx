@@ -71,7 +71,7 @@ export default function Home() {
           <div className="flex items-center justify-center">
             <Link href="/upload" className="w-full h-[150px] hover:bg-zinc-50 transition-colors rounded-lg flex items-center justify-center shadow-md">
             <span
-              className=" w-14 h-14 bg-zinc-800 rounded-full flex items-center justify-center shadow-lg transition-colors pointer-events-auto"
+              className=" w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center shadow-lg transition-colors pointer-events-auto"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -107,7 +107,7 @@ export default function Home() {
                   </Link>
                   <Link
                     href="/upload"
-                    className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                    className="bg-zinc-800 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
                   >
                     Create Recipe
                   </Link>

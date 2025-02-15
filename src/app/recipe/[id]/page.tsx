@@ -153,7 +153,10 @@ export default function RecipePage() {
               {recipe.title}
             </h1>
 
-            <Link href={`/profile/${recipe.userId}`} className="text-zinc-500 hover:text-zinc-700 transition-colors mb-4 block">
+            <Link
+              href={`/profile/${recipe.userId}`}
+              className="text-zinc-500 hover:text-zinc-700 transition-colors mb-4 block"
+            >
               View Creator&apos;s Profile
             </Link>
 
@@ -186,30 +189,30 @@ export default function RecipePage() {
                 <button
                   onClick={() => analyzeFoods("default")}
                   disabled={analyzing}
-                  className="px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-400 transition-colors disabled:opacity-50"
                 >
-                  {analyzing ? "Analyzing..." : "Analyze"}
+                  {analyzing ? "Analyzing..." : "Complete Analysis"}
                 </button>
                 <button
                   onClick={() => analyzeFoods("fodmap")}
                   disabled={analyzing}
-                  className="px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-400 transition-colors disabled:opacity-50"
                 >
-                  {analyzing ? "Analyzing..." : "FODMAP Analyze"}
+                  {analyzing ? "Analyzing..." : "FODMAP Analysis"}
                 </button>
                 <button
                   onClick={() => analyzeFoods("usda")}
                   disabled={analyzing}
-                  className="px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-400 transition-colors disabled:opacity-50"
                 >
-                  {analyzing ? "Analyzing..." : "USDA Analyze"}
+                  {analyzing ? "Analyzing..." : "Allergen Analysis"}
                 </button>
                 <button
                   onClick={() => analyzeFoods("sensitivities")}
                   disabled={analyzing}
-                  className="px-4 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-700 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-400 transition-colors disabled:opacity-50"
                 >
-                  {analyzing ? "Analyzing..." : "Sensitivities"}
+                  {analyzing ? "Analyzing..." : "Sensitivities Analysis"}
                 </button>
               </div>
 

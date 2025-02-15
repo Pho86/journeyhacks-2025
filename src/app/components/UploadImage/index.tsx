@@ -207,7 +207,7 @@ export default function FoodAnalyzer() {
       
         <label
           htmlFor="fileInput"
-          className="px-6 py-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600 transition-colors"
+          className="px-6 py-2 bg-orange-600 hover:bg-orange-400 text-white rounded-lg cursor-pointer  transition-colors"
         >
           Upload Image
         </label>
@@ -301,7 +301,7 @@ export default function FoodAnalyzer() {
         {/* Save Recipe Button (Left-Aligned) */}
         <button
           type="submit"
-          className="px-8 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-600 transition-colors self-start"
+          className="px-8 py-2 text-white rounded-lg bg-orange-600 hover:bg-orange-400 transition-colors self-start"
           disabled={!title}
         >
           Save Recipe

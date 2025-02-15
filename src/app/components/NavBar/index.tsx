@@ -55,7 +55,7 @@ export default function Login() {
         {user == null ? (
           <button
             onClick={handleGoogleLogin}
-            className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors "
+            className="bg-orange-600 hover:bg-orange-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors "
           >
             Login
           </button>
@@ -66,7 +66,7 @@ export default function Login() {
             </Link>
             <button
               onClick={handleSignOut}
-              className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+              className="bg-orange-600 hover:bg-orange-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
             >
               Logout
             </button>

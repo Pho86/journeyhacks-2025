@@ -40,10 +40,6 @@ export default function RecipePage() {
   const [analyzing, setAnalyzing] = useState(false);
 
   useEffect(() => {
-    if (!user) {
-      router.push("/");
-      return;
-    }
 
     const fetchRecipe = async () => {
       try {

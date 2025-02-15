@@ -1,3 +1,31 @@
+
+# Food Sensi: Get Realtime information about the food you are eating.
+
+## Problem
+
+What am I actually eating and is it good for me?
+
+Food Sensi addresses this concern by analyzing the food in your food and provides multiple ways to scan it depending on your preferences.
+
+## Solution: Food Sensi
+
+Our application stands out with its real-time, data-driven, and user-friendly features, catering to various needs:
+- **Real-Time Data Collection:** Utilizing crowd-sourcing to gather and update noise data dynamically.
+- **User-Driven Approach:** Empowering users to contribute to and benefit from the collective noise data.
+- **Versatile Use Cases:** Ideal for anyone seeking a quiet spot, from students to homebuyers.
+
+## Tech Stack
+
+Our technology choices reflect our commitment to robust and efficient solutions:
+- **React and Next.js:** Dynamic and responsive web application.
+- **Firebase:** To allow users to store food into our database and authentication.
+- **UploadThing:** To allow users to upload images to the database.
+- **Clarifai:** A pre-trained AI model that analyzes food images to identify ingredients and nutritional content.
+  
+## The Experience
+
+With our mobile app, users easily contribute noise data, which is visualized on maps using Google Maps and Mappedin APIs. This allows everyone from students seeking a quiet study space to PTSD sufferers needing a calm environment, to find their ideal location with ease.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

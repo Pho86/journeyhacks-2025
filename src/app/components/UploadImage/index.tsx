@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useUploadThing } from "@/utils/uploadthing";
-import { getFirestore, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
 import { app } from "../../../../firebase.config";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context";
@@ -29,9 +29,9 @@ export default function FoodAnalyzer() {
   const [loading, setLoading] = useState(false);
   const [newFood, setNewFood] = useState("");
   const [title, setTitle] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [recipeId, setRecipeId] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [clarifaiLoading, setClarifaiLoading] = useState(false);
+  const [localPredictions, setLocalPredictions] = useState<Prediction[]>([]);
 
   const { startUpload } = useUploadThing("imageUploader");
 
@@ -41,21 +41,17 @@ export default function FoodAnalyzer() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file');
       return;
     }
 
     // Validate file size (4MB limit)
     if (file.size > 4 * 1024 * 1024) {
-      setError('Image size must be less than 4MB');
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
-      // Convert file to base64 for preview and Clarifai
       const reader = new FileReader();
       reader.onload = async () => {
         try {
@@ -66,23 +62,7 @@ export default function FoodAnalyzer() {
           if (!uploadResponse?.[0]?.ufsUrl) {
             throw new Error("Failed to upload image");
           }
-          const imageUrl = uploadResponse[0].ufsUrl;
-
-          // Add a check for app initialization
-          if (!app) throw new Error("Firebase app not initialized");
-
-          // Then use getFirestore with the guaranteed non-null app
-          const db = getDb();
-          const recipesCollection = collection(db, "recipes");
-          const recipeData = {
-            title: "",
-            imageUrl,
-            createdAt: new Date().toISOString(),
-            userId: user?.uid,
-          };
-          
-          const recipeRef = await addDoc(recipesCollection, recipeData);
-          setRecipeId(recipeRef.id);
+          setImageUrl(uploadResponse[0].ufsUrl);
 
           setClarifaiLoading(true);
           const response = await fetch("/api/image", {
@@ -113,231 +93,224 @@ export default function FoodAnalyzer() {
             throw new Error("Invalid response format from image analysis");
           }
 
-          const filteredConcepts = concepts.filter(
-            (concept: ClarifaiConcept) => concept.value > 0.6
-          );
+          const filteredConcepts = concepts
+            .filter((concept: ClarifaiConcept) => concept.value > 0.6)
+            .map(concept => ({
+              name: concept.name,
+              value: concept.value
+            }));
 
-          const foodCollection = collection(db, "food");
-          await Promise.all(
-            filteredConcepts.map(concept => 
-              addDoc(foodCollection, {
-                name: concept.name,
-                confidence: concept.value,
-                recipeId: recipeRef.id,
-                createdAt: new Date().toISOString(),
-              })
-            )
-          );
-
-          const foodQuery = query(foodCollection, where("recipeId", "==", recipeRef.id));
-          const foodSnapshot = await getDocs(foodQuery);
-          const foods = foodSnapshot.docs.map(doc => ({
-            name: doc.data().name,
-            value: doc.data().confidence
-          }));
-          setPredictions(foods);
+          setLocalPredictions(filteredConcepts);
+          setPredictions(filteredConcepts);
 
         } catch (err) {
-          setError(err instanceof Error ? err.message : "Failed to process image");
           console.error("Error processing image:", err);
         } finally {
           setClarifaiLoading(false);
         }
       };
       reader.onerror = () => {
-        setError("Failed to read image file. Please try again.");
+        console.error("Failed to read image file. Please try again.");
       };
       reader.readAsDataURL(file);
     } catch (error) {
-      setError(error instanceof Error ? error.message : "An unexpected error occurred");
       console.error("Error processing image:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const deletePrediction = async (index: number) => {
-    if (!recipeId) return;
-    
-    try {
-      const db = getDb();
-      const foodCollection = collection(db, "food");
-      const foodQuery = query(foodCollection, where("recipeId", "==", recipeId));
-      const foodSnapshot = await getDocs(foodQuery);
-      const foods = foodSnapshot.docs;
-      
-      if (foods[index]) {
-        await deleteDoc(foods[index].ref);
-        
-        const updatedFoods = foods.filter((_, i) => i !== index).map(doc => ({
-          name: doc.data().name,
-          value: doc.data().confidence
-        }));
-        setPredictions(updatedFoods);
-      }
-    } catch (error) {
-      setError("Failed to delete food item");
-      console.error("Error deleting food:", error);
-    }
+  const deletePrediction = (index: number) => {
+    setLocalPredictions(prev => prev.filter((_, i) => i !== index));
+    setPredictions(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleAddFood = async (e: React.FormEvent) => {
+  const handleAddFood = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newFood.trim() || !recipeId) return;
+    if (!newFood.trim()) return;
 
-    try {
-      const db = getDb();
-      const foodCollection = collection(db, "food");
-      
-      await addDoc(foodCollection, {
-        name: newFood.trim(),
-        confidence: 1,
-        recipeId,
-        createdAt: new Date().toISOString(),
-        userId: user?.uid,
-      });
-
-      // Refresh predictions
-      const foodQuery = query(foodCollection, where("recipeId", "==", recipeId));
-      const foodSnapshot = await getDocs(foodQuery);
-      const foods = foodSnapshot.docs.map(doc => ({
-        name: doc.data().name,
-        value: doc.data().confidence
-      }));
-      setPredictions(foods);
-      setNewFood("");
-    } catch (error) {
-      setError("Failed to add food item");
-      console.error("Error adding food:", error);
-    }
+    const newPrediction = {
+      name: newFood.trim(),
+      value: 1
+    };
+    setLocalPredictions(prev => [...prev, newPrediction]);
+    setPredictions(prev => [...prev, newPrediction]);
+    setNewFood("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recipeId || !title) return;
+    if (!imageUrl || !title || !user) return;
     
     setLoading(true);
     try {
       const db = getDb();
-      const recipeRef = doc(db, "recipes", recipeId);
       
-      await updateDoc(recipeRef, {
+      // Add recipe first
+      const recipesCollection = collection(db, "recipes");
+      const recipeData = {
         title,
+        imageUrl,
+        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      });
+        userId: user.uid,
+      };
+      
+      const recipeRef = await addDoc(recipesCollection, recipeData);
+      
+      // Then add all foods
+      const foodCollection = collection(db, "food");
+      await Promise.all(
+        localPredictions.map(prediction => 
+          addDoc(foodCollection, {
+            name: prediction.name,
+            confidence: prediction.value,
+            recipeId: recipeRef.id,
+            createdAt: new Date().toISOString(),
+            userId: user.uid,
+          })
+        )
+      );
 
       // Reset form
       setTitle("");
+      setLocalPredictions([]);
       setPredictions([]);
       setImage(null);
-      setRecipeId(null);
+      setImageUrl(null);
       
       // Navigate to home
       router.push("/");
       
     } catch (error) {
       if (error instanceof Error && error.message.includes("permission-denied")) {
-        setError("Permission denied. Please check Firestore rules.");
+        console.error("Permission denied. Please check Firestore rules.");
       } else {
-        setError(error instanceof Error ? error.message : "Failed to save recipe");
+        console.error("Error saving recipe:", error);
       }
-      console.error("Error saving recipe:", error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2">
-      <div className="flex">
-        <div className="w-max">
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="mb-4"
-          />
-          {image && (
-            <Image
-              src={image}
-              width={300}
-              height={300}
-              alt="Food Preview"
-              className="max-w-sm rounded-xl shadow-lg transition-opacity"
-            />
-          )}
-        </div>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-4 p-6 bg-white shadow-lg mb-32 rounded-lg w-full max-w-md flex flex-col items-start" // Left-align content
+      >
+    {/* File Upload Button */}
+    <div className="flex flex-col items-start w-full">
+      <input id="fileInput" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+      
+      <div className="flex justify-center w-full">
+      
+        <label
+          htmlFor="fileInput"
+          className="px-6 py-2 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600 transition-colors"
+        >
+          Upload Image
+        </label>
       </div>
-      {loading || clarifaiLoading && (
-        <div className="flex justify-center items-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+
+      {/* Image Preview (Left-Aligned) */}
+      {image && (
+        <div className="mt-4 self-start">
+          <Image
+            src={image}
+            width={300}
+            height={300}
+            alt="Food Preview"
+            className="w-full rounded-lg shadow-lg"
+          />
         </div>
       )}
-      {error && (
-        <div className="text-red-500 bg-red-50 p-3 rounded-lg">
-          Error: {error}
+    </div>
+
+    {image && (
+      <>
+        <div className="flex flex-col items-start w-full">
+          <h2 className="text-lg font-semibold">Name of Dish:</h2>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Dish name..."
+            className="px-3 py-2 border w-full rounded-lg"
+            required
+          />
         </div>
-      )}
-      {predictions.length > 0 && (
-        <>
-          <div className="flex flex-col">
-            <h2 className="text-lg font-semibold">Food Title:</h2>
+
+        <div className="flex flex-col items-start w-full">
+          <h3 className="text-lg font-semibold mb-2">Ingredients:</h3>
+          <div className="mb-4 flex w-full">
             <input
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Food..."
-              className="px-3 py-2 border w-max rounded-lg "
-              required
+              value={newFood}
+              onChange={(e) => setNewFood(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddFood(e);
+                }
+              }}
+              placeholder="Add ingredient..."
+              className="px-3 py-1 border rounded-lg flex-1"
             />
+            <button
+              type="button"
+              onClick={handleAddFood}
+              className="ml-2 px-4 py-1 bg-zinc-800 text-white rounded-lg hover:bg-zinc-600 transition-colors"
+            >
+              Add
+            </button>
           </div>
+        </div>
 
-          <div className="">
-            <h3 className="text-lg font-semibold mb-2">Food Items:</h3>
-            <div className="mb-4 flex gap-2">
-              <input
-                type="text"
-                value={newFood}
-                onChange={(e) => setNewFood(e.target.value)}
-                placeholder="Add food item..."
-                className="px-3 py-1 border rounded-lg"
-              />
+        {(loading || clarifaiLoading) && (
+            <div className="p-6 rounded-lg flex items-center gap-2">
+              <svg className="animate-spin h-5 w-5 text-zinc-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Loading...</span>
+            </div>
+        )}
+
+        {/* Prediction List (Left-Aligned) */}
+        <ul className="list-disc flex flex-col gap-2 self-start">
+          {predictions.map((pred, index) => (
+            <li key={index} className="flex items-center gap-2 group">
+              <span title={`Confidence: ${(pred.value * 100).toFixed(2)}%`}>
+                {pred.name} ({(pred.value * 100).toFixed(2)}%)
+              </span>
               <button
                 type="button"
-                onClick={handleAddFood}
-                className="px-4 py-1 bg-zinc-800 text-white rounded-lg hover:bg-zinc-600 transition-colors"
+                className="text-red-500 hover:font-bold transition-all"
+                title="Delete"
+                onClick={() => deletePrediction(index)}
               >
-                Add
+                ×
               </button>
-            </div>
-            <ul className="list-disc flex flex-col gap-2">
-              {predictions.map((pred, index) => (
-                <li key={index} className="flex items-center gap-2 group">
-                  <span title={`Confidence: ${(pred.value * 100).toFixed(2)}%`}>
-                    {pred.name} ({(pred.value * 100).toFixed(2)}%)
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => deletePrediction(index)}
-                    className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Delete"
-                  >
-                    ×
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
+            </li>
+          ))}
+        </ul>
 
-          <button
-            type="submit"
-            className="px-8 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-600 transition-colors"
-            disabled={!title || predictions.length === 0}
-          >
-            Save Recipe
-          </button>
-        </>
-      )}
-    </form>
+        <div className="flex justify-center w-full">
+
+        {/* Save Recipe Button (Left-Aligned) */}
+        <button
+          type="submit"
+          className="px-8 py-2 bg-zinc-800 text-white rounded-lg hover:bg-zinc-600 transition-colors self-start"
+          disabled={!title}
+        >
+          Save Recipe
+        </button>
+        </div>
+      </>
+    )}
+  </form>
+</div>
+
   );
 }

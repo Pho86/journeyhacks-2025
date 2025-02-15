@@ -5,6 +5,7 @@ export interface Recipe {
     imageUrl: string;
     createdAt: string;
     updatedAt?: string;
+    userId?: string;
 }
 
 export interface Food {

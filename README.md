@@ -1,20 +1,27 @@
+# Food Sensi: Understand Your Food Through AI Analysis
 
-# Food Sensi: Get Realtime information about the food you are eating.
+## Overview
+Food Sensi is an AI-powered food analysis platform that helps you understand what's in your food and how it might affect you. By simply uploading a photo of your food, you can get detailed insights about ingredients, nutritional content, and potential sensitivities.
 
-## Problem
+## Key Features
 
-What am I actually eating and is it good for me?
+- **AI-Powered Food Analysis:** Instantly identify ingredients in your food through image recognition
+- **Multiple Analysis Modes:**
+  - FODMAP Analysis for digestive sensitivities
+  - USDA Nutritional Analysis
+  - General Food Sensitivity Analysis
+- **Recipe Sharing Platform:** Share and discover recipes from other users
+- **Personalized Insights:** Get tailored information about how foods may affect you
 
-Food Sensi addresses this concern by analyzing the food in your food and provides multiple ways to scan it depending on your preferences.
+## Technology Stack
 
-## Solution: Food Sensi
+- **Frontend:** React, Next.js 14 (App Router)
+- **Authentication & Database:** Firebase
+- **Image Storage:** UploadThing
+- **AI Analysis:** Clarifai API
+- **Styling:** Tailwind CSS
 
-Our application stands out with its real-time, data-driven, and user-friendly features, catering to various needs:
-- **Real-Time Data Collection:** Utilizing crowd-sourcing to gather and update noise data dynamically.
-- **User-Driven Approach:** Empowering users to contribute to and benefit from the collective noise data.
-- **Versatile Use Cases:** Ideal for anyone seeking a quiet spot, from students to homebuyers.
-
-## Tech Stack
+## Local Development
 
 Our technology choices reflect our commitment to robust and efficient solutions:
 - **React and Next.js:** Dynamic and responsive web application.
@@ -24,7 +31,7 @@ Our technology choices reflect our commitment to robust and efficient solutions:
   
 ## The Experience
 
-With our mobile app, users easily contribute noise data, which is visualized on maps using Google Maps and Mappedin APIs. This allows everyone from students seeking a quiet study space to PTSD sufferers needing a calm environment, to find their ideal location with ease.
+Food Sensi provides an intuitive interface where users can upload food images and receive instant analysis of ingredients and nutritional content. Users can share their recipes, explore others' contributions, and get detailed insights about food sensitivities, FODMAP levels, and USDA nutritional data - helping everyone make informed decisions about their diet.
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 

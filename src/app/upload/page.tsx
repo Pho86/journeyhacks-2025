@@ -15,7 +15,6 @@ export default function UploadPage() {
         <div className="flex items-center mt-32 justify-center">
           Please login to create recipes
         </div>
-        ;
       </div>
     ); 
   }

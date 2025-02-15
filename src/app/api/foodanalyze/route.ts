@@ -254,28 +254,39 @@ export async function POST(request: Request) {
 
     const triggers = analysis.filter(a => a.percentage > 20);
     
-    let suggestion = 'No significant food patterns detected.';
-    if (triggers.length > 0) {
-      if (type === 'fodmap') {
-        const lowFodmapTrigger = triggers.find(t => t.group === 'low');
-        if (lowFodmapTrigger && triggers.length === 1) {
-          suggestion = `Great news! Your meal contains only low FODMAP foods. This is ideal for sensitive digestion and should be very gentle on your stomach.`;
-        } else {
-          const highFodmapTriggers = triggers.filter(t => t.group !== 'low');
-          const highestTrigger = highFodmapTriggers.reduce((max, current) => 
-            current.percentage > max.percentage ? current : max
-          );
-          suggestion = `Warning: Your meal appears to be high in FODMAPs, especially ${highestTrigger.group} (${highestTrigger.percentage.toFixed(1)}%). Consider reducing these ingredients if you experience digestive issues.`;
-        }
-      } else if (type === 'sensitivities') {
-        const sensitivityWarnings = triggers.map(t => 
-          `${t.group} (${t.percentage.toFixed(1)}% of ingredients)`
-        );
-        suggestion = `Warning: This recipe contains common allergens/sensitivities: ${sensitivityWarnings.join(', ')}. Consider alternatives if you have known sensitivities.`;
-      } else {
-        suggestion = `Consider reducing ${triggers.map(t => t.group).join(', ')} for two weeks to identify sensitivities.`;
-      }
-    }
+      let suggestion = 'No significant food patterns detected.';
+      if (triggers.length > 0) {
+          if (type === 'fodmap' && FODMAP_CATEGORIES) {
+              const highFodmapTrigger = triggers.find(t => t.group === 'high');
+              const mediumFodmapTrigger = triggers.find(t => t.group === 'medium');
+
+              if (highFodmapTrigger || mediumFodmapTrigger) {
+                  const highestTrigger = triggers.reduce((max, current) =>
+                      current.percentage > max.percentage ? current : max
+                  );
+                  suggestion = `Warning: Your meal appears to be high in FODMAPs, especially ${highestTrigger.group} (${highestTrigger.percentage.toFixed(1)}%). Consider reducing these ingredients if you experience digestive issues.`;
+              } else {
+                  suggestion = `Great news! Your meal contains only low FODMAP foods. This is ideal for sensitive digestion and should be very gentle on your stomach.`;
+              }
+          } else if (type === 'sensitivities' && sensitivities) {
+              const sensitivityWarnings = triggers.map(t =>
+                  `${t.group} (${t.percentage.toFixed(1)}% of ingredients)`
+              );
+              suggestion = `Warning: This recipe contains common allergens/sensitivities: ${sensitivityWarnings.join(', ')}. Consider alternatives if you have known sensitivities.`;
+          } else if (type === 'usda' && USDA_CATEGORIES) {
+              // Filter out triggers with the group 'none'
+              const filteredTriggers = triggers.filter(t => t.group !== 'none');
+
+              if (filteredTriggers.length > 0) {
+                  // Join the groups, ensuring 'none' is not included
+                  const triggerGroups = filteredTriggers.map(t => t.group).filter(group => group !== 'None').join(', ');
+                  suggestion = `Consider reducing ${triggerGroups ? triggerGroups : 'food'} for two weeks to identify sensitivities.`;
+              } else {
+                  suggestion = `No significant food patterns detected for USDA analysis.`;
+              }
+          } else {
+              suggestion = `Analysis type not recognized or categories not defined.`;
+          }}
     return NextResponse.json({
       analysis,
       triggers,

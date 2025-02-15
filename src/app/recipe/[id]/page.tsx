@@ -183,13 +183,6 @@ export default function RecipePage() {
             <div className="mt-8">
               <div className="flex gap-4">
                 <button
-                  onClick={() => analyzeFoods("default")}
-                  disabled={analyzing}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-400 transition-colors disabled:opacity-50"
-                >
-                  {analyzing ? "Analyzing..." : "Complete Analysis"}
-                </button>
-                <button
                   onClick={() => analyzeFoods("fodmap")}
                   disabled={analyzing}
                   className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-400 transition-colors disabled:opacity-50"

@@ -1,0 +1,90 @@
+Lactose Intolerance:
+
+butter
+brie
+cheddar cheese
+cottage cheese
+creme brulee
+custard
+ice cream
+milk
+mozzarella
+panna cotta
+parmesan
+pudding
+roquefort
+sherbet
+swiss cheese
+whipped cream
+yogurt
+Gluten Sensitivity:
+
+bagel
+baguette
+baklava
+barley
+beignet
+biscuits
+bread
+bread roll
+breadstick
+brioche
+cake
+cannoli
+cereal
+churros
+ciabatta
+cinnamon roll
+cookie
+cornflakes
+couscous
+cracker
+croissant
+crouton
+danish pastry
+doughnut
+eclaire
+english muffin
+farfalle
+flatbread
+focaccia
+galette
+gnocchi
+grissini
+knish
+lasagne
+loaf
+macaron
+macaroni
+matzah
+muffin
+noodle
+naan
+pasta
+pastry
+penne
+pie
+pita bread
+pizza
+popover
+pretzel
+ramen
+ravioli
+ribbon-cut pasta
+roll
+samosa
+sandwich
+sausage roll
+scones
+spaghetti
+strudel
+tabouli
+tagliatelle
+tempura
+toast
+tortilla
+tortilla chip
+vermicelli
+wafer
+waffle
+whoopie pie

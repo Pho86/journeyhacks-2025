@@ -55,18 +55,18 @@ export default function Login() {
         {user == null ? (
           <button
             onClick={handleGoogleLogin}
-            className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+            className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors "
           >
             Login
           </button>
         ) : (
           <>
-            <p className="text-lg font-medium text-gray-700">
+            <Link href={`/profile/${user.uid}`} className="text-lg hover:text-gray-900 font-medium text-gray-700">
               {user.displayName}
-            </p>
+            </Link>
             <button
               onClick={handleSignOut}
-              className="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200"
+              className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
             >
               Logout
             </button>

@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useUploadThing } from "@/utils/uploadthing";
-import { getFirestore, collection, addDoc, getDocs, query, where, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
 import { app } from "../../../../firebase.config";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context";
@@ -30,8 +30,9 @@ export default function FoodAnalyzer() {
   const [newFood, setNewFood] = useState("");
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [recipeId, setRecipeId] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [clarifaiLoading, setClarifaiLoading] = useState(false);
+  const [localPredictions, setLocalPredictions] = useState<Prediction[]>([]);
 
   const { startUpload } = useUploadThing("imageUploader");
 
@@ -66,23 +67,7 @@ export default function FoodAnalyzer() {
           if (!uploadResponse?.[0]?.ufsUrl) {
             throw new Error("Failed to upload image");
           }
-          const imageUrl = uploadResponse[0].ufsUrl;
-
-          // Add a check for app initialization
-          if (!app) throw new Error("Firebase app not initialized");
-
-          // Then use getFirestore with the guaranteed non-null app
-          const db = getDb();
-          const recipesCollection = collection(db, "recipes");
-          const recipeData = {
-            title: "",
-            imageUrl,
-            createdAt: new Date().toISOString(),
-            userId: user?.uid,
-          };
-          
-          const recipeRef = await addDoc(recipesCollection, recipeData);
-          setRecipeId(recipeRef.id);
+          setImageUrl(uploadResponse[0].ufsUrl);
 
           setClarifaiLoading(true);
           const response = await fetch("/api/image", {
@@ -113,29 +98,15 @@ export default function FoodAnalyzer() {
             throw new Error("Invalid response format from image analysis");
           }
 
-          const filteredConcepts = concepts.filter(
-            (concept: ClarifaiConcept) => concept.value > 0.6
-          );
+          const filteredConcepts = concepts
+            .filter((concept: ClarifaiConcept) => concept.value > 0.6)
+            .map(concept => ({
+              name: concept.name,
+              value: concept.value
+            }));
 
-          const foodCollection = collection(db, "food");
-          await Promise.all(
-            filteredConcepts.map(concept => 
-              addDoc(foodCollection, {
-                name: concept.name,
-                confidence: concept.value,
-                recipeId: recipeRef.id,
-                createdAt: new Date().toISOString(),
-              })
-            )
-          );
-
-          const foodQuery = query(foodCollection, where("recipeId", "==", recipeRef.id));
-          const foodSnapshot = await getDocs(foodQuery);
-          const foods = foodSnapshot.docs.map(doc => ({
-            name: doc.data().name,
-            value: doc.data().confidence
-          }));
-          setPredictions(foods);
+          setLocalPredictions(filteredConcepts);
+          setPredictions(filteredConcepts);
 
         } catch (err) {
           setError(err instanceof Error ? err.message : "Failed to process image");
@@ -156,81 +127,64 @@ export default function FoodAnalyzer() {
     }
   };
 
-  const deletePrediction = async (index: number) => {
-    if (!recipeId) return;
-    
-    try {
-      const db = getDb();
-      const foodCollection = collection(db, "food");
-      const foodQuery = query(foodCollection, where("recipeId", "==", recipeId));
-      const foodSnapshot = await getDocs(foodQuery);
-      const foods = foodSnapshot.docs;
-      
-      if (foods[index]) {
-        await deleteDoc(foods[index].ref);
-        
-        const updatedFoods = foods.filter((_, i) => i !== index).map(doc => ({
-          name: doc.data().name,
-          value: doc.data().confidence
-        }));
-        setPredictions(updatedFoods);
-      }
-    } catch (error) {
-      setError("Failed to delete food item");
-      console.error("Error deleting food:", error);
-    }
+  const deletePrediction = (index: number) => {
+    setLocalPredictions(prev => prev.filter((_, i) => i !== index));
+    setPredictions(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleAddFood = async (e: React.FormEvent) => {
+  const handleAddFood = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newFood.trim() || !recipeId) return;
+    if (!newFood.trim()) return;
 
-    try {
-      const db = getDb();
-      const foodCollection = collection(db, "food");
-      
-      await addDoc(foodCollection, {
-        name: newFood.trim(),
-        confidence: 1,
-        recipeId,
-        createdAt: new Date().toISOString(),
-        userId: user?.uid,
-      });
-
-      // Refresh predictions
-      const foodQuery = query(foodCollection, where("recipeId", "==", recipeId));
-      const foodSnapshot = await getDocs(foodQuery);
-      const foods = foodSnapshot.docs.map(doc => ({
-        name: doc.data().name,
-        value: doc.data().confidence
-      }));
-      setPredictions(foods);
-      setNewFood("");
-    } catch (error) {
-      setError("Failed to add food item");
-      console.error("Error adding food:", error);
-    }
+    const newPrediction = {
+      name: newFood.trim(),
+      value: 1
+    };
+    setLocalPredictions(prev => [...prev, newPrediction]);
+    setPredictions(prev => [...prev, newPrediction]);
+    setNewFood("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recipeId || !title) return;
+    if (!imageUrl || !title || !user) return;
     
     setLoading(true);
     try {
       const db = getDb();
-      const recipeRef = doc(db, "recipes", recipeId);
       
-      await updateDoc(recipeRef, {
+      // Add recipe first
+      const recipesCollection = collection(db, "recipes");
+      const recipeData = {
         title,
+        imageUrl,
+        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      });
+        userId: user.uid,
+      };
+      
+      const recipeRef = await addDoc(recipesCollection, recipeData);
+      
+      // Then add all foods
+      const foodCollection = collection(db, "food");
+      await Promise.all(
+        localPredictions.map(prediction => 
+          addDoc(foodCollection, {
+            name: prediction.name,
+            confidence: prediction.value,
+            recipeId: recipeRef.id,
+            createdAt: new Date().toISOString(),
+            userId: user.uid,
+          })
+        )
+      );
 
       // Reset form
       setTitle("");
+      setLocalPredictions([]);
       setPredictions([]);
       setImage(null);
-      setRecipeId(null);
+      setImageUrl(null);
       
       // Navigate to home
       router.push("/");

@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import FoodAnalyzer from '../components/UploadImage';
-import Login from '../components/Login';
+import Login from '../components/NavBar';
 import { useAuth } from '../context';
 
 export default function UploadPage() {
@@ -11,7 +11,8 @@ export default function UploadPage() {
     return (
       <div className="max-w-screen-lg w-full mx-auto">
         <Login />
-        <div className="min-h-screen flex items-center justify-center">
+        <h1 className='font-bold text-2xl p-4'>Add Recipe</h1>
+        <div className="flex items-center mt-32 justify-center">
           Please login to create recipes
         </div>
         ;

@@ -8,7 +8,7 @@ interface FoodCardProps {
 
 export default function FoodCard({ food }: FoodCardProps) {
   return (
-    <Link href={`/recipe/${food.id}`} key={food.id} className="group">
+    <Link href={`/recipe/${food.id}`} key={food.id} className="group hover:bg-zinc-50 transition-all rounded-lg shadow-md p-3">
       {food.imageUrl && (
         <Image
           src={food.imageUrl}
@@ -18,7 +18,7 @@ export default function FoodCard({ food }: FoodCardProps) {
           className="w-full h-72 object-cover rounded-lg"
         />
       )}
-      <h3 className="mt-2 text-xl font-semibold group-hover:font-bold transition-all">{food.title}</h3>
+      <h3 className="mt-2 text-xl group-hover:font-semibold transition-all">{food.title}</h3>
     </Link>
   );
 }

@@ -1,5 +1,5 @@
 "use client";
-import Login from "../components/Login";
+import Login from "../components/NavBar";
 import { useEffect, useState } from "react";
 import { collection, getDocs, getFirestore } from "firebase/firestore";
 import { app } from "../../../firebase.config";
@@ -48,13 +48,13 @@ export default function Home() {
         <Login />
         <div className="p-4 flex gap-4 flex-col">
           <h1 className="text-2xl font-bold">Browse Recipes</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ">
-          {foods.map((food) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 ">
+            {foods.map((food) => (
               <FoodCard key={food.id} food={food} />
             ))}
+          </div>
         </div>
       </div>
-            </div>
       <UploadButton />
     </>
   );
